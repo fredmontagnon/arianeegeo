@@ -592,16 +592,23 @@ Réponds UNIQUEMENT en JSON valide, sans backticks, sans markdown :
 
   try {
     let parsed;
+    // Nettoyer le texte : enlever les backticks markdown si présents
+    let cleanText = text.trim();
+    // Supprimer ```json ... ``` ou ``` ... ```
+    cleanText = cleanText.replace(/^```(?:json)?\s*\n?/i, "").replace(/\n?```\s*$/i, "");
+    cleanText = cleanText.trim();
+
     try {
-      parsed = JSON.parse(text);
+      parsed = JSON.parse(cleanText);
     } catch {
-      const jsonMatch = text.match(/\[[\s\S]*\]/);
-      if (!jsonMatch) throw new Error("No JSON array found");
+      const jsonMatch = cleanText.match(/\[[\s\S]*\]/);
+      if (!jsonMatch) throw new Error("No JSON array found in: " + cleanText.substring(0, 200));
       parsed = JSON.parse(jsonMatch[0]);
     }
     return { recommendations: parsed, tokens_used: tokensUsed };
   } catch (err) {
     console.error("[LLM-MONITOR] Erreur parsing recommandations:", err);
+    console.error("[LLM-MONITOR] Réponse brute Claude:", text.substring(0, 500));
     return {
       recommendations: [
         {
