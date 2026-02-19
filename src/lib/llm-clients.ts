@@ -239,7 +239,7 @@ async function queryGrok(query: string): Promise<LLMResponse> {
     const response = await withRetry(async () => {
       return await withTimeout(
         client.responses.create({
-          model: "grok-3-mini-fast",
+          model: "grok-4-1-fast-non-reasoning",
           input: query,
           tools: [{ type: "web_search" as const }],
         }),
