@@ -5,6 +5,16 @@ export type LLMName = 'chatgpt' | 'gemini' | 'mistral' | 'grok' | 'claude' | 'pe
 
 export const LLM_NAMES: LLMName[] = ['chatgpt', 'gemini', 'mistral', 'grok', 'claude', 'perplexity'];
 
+// Parts de marché LLM (janvier 2026) — utilisées pour la moyenne pondérée du score global
+export const LLM_MARKET_WEIGHTS: Record<LLMName, number> = {
+  chatgpt: 81.4,
+  perplexity: 7.3,
+  gemini: 5.6,
+  claude: 1.05,
+  grok: 0.5,
+  mistral: 0.3,
+};
+
 export const LLM_DISPLAY: Record<LLMName, { label: string; color: string; icon: string }> = {
   chatgpt:    { label: 'ChatGPT',    color: '#10a37f', icon: '🟢' },
   gemini:     { label: 'Gemini',     color: '#4285f4', icon: '🔵' },

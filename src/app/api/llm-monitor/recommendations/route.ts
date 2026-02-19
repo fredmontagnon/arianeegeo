@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { generateRecommendations } from "@/lib/llm-clients";
+import { LLM_MARKET_WEIGHTS } from "@/lib/llm-queries";
+import type { LLMName } from "@/lib/llm-queries";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -105,11 +107,13 @@ export async function POST(request: NextRequest) {
       absent_from: llms,
     }));
 
-    // Score global
-    const validResults = allResults.filter((r) => !!r.response_text);
-    const totalMentionsValid = validResults.filter((r) => r.is_mentioned).length;
-    const scoreGlobal = validResults.length > 0
-      ? Math.round((totalMentionsValid / validResults.length) * 100)
+    // Score global (moyenne pondérée par part de marché LLM)
+    const llmScoreEntries = Object.entries(llmCounts)
+      .filter(([, counts]) => counts.total > 0)
+      .map(([llm, counts]) => ({ llm, score: Math.round((counts.mentioned / counts.total) * 100) }));
+    const totalWeightReco = llmScoreEntries.reduce((sum, { llm }) => sum + (LLM_MARKET_WEIGHTS[llm as LLMName] || 0), 0);
+    const scoreGlobal = llmScoreEntries.length > 0 && totalWeightReco > 0
+      ? Math.round(llmScoreEntries.reduce((sum, { llm, score }) => sum + score * (LLM_MARKET_WEIGHTS[llm as LLMName] || 0), 0) / totalWeightReco)
       : 0;
 
     const summaryStats = {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import type { LLMName } from "@/lib/llm-queries";
-import { LLM_NAMES } from "@/lib/llm-queries";
+import { LLM_NAMES, LLM_MARKET_WEIGHTS } from "@/lib/llm-queries";
 
 export const dynamic = "force-dynamic";
 
@@ -92,10 +92,11 @@ export async function GET(request: NextRequest) {
       yesterdayResults?.map((r) => ({ llm_name: r.llm_name, is_mentioned: r.is_mentioned, has_response: !!r.response_text })) ?? null
     );
 
-    // 5b. Score global (moyenne des LLMs actifs, excluant N/A)
-    const activeScores = Object.values(todayScores).filter((s) => s >= 0);
-    const globalScore = activeScores.length > 0
-      ? Math.round(activeScores.reduce((a, b) => a + b, 0) / activeScores.length)
+    // 5b. Score global (moyenne pondérée par part de marché LLM, excluant N/A)
+    const activeLLMs = (Object.entries(todayScores) as [LLMName, number][]).filter(([, s]) => s >= 0);
+    const totalWeight = activeLLMs.reduce((sum, [llm]) => sum + LLM_MARKET_WEIGHTS[llm], 0);
+    const globalScore = activeLLMs.length > 0 && totalWeight > 0
+      ? Math.round(activeLLMs.reduce((sum, [llm, score]) => sum + score * LLM_MARKET_WEIGHTS[llm], 0) / totalWeight)
       : -1;
 
     // 6. Historique 30 jours

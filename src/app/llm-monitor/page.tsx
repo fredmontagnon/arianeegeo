@@ -139,7 +139,7 @@ export default function LLMMonitorPage() {
                     <div>
                       <h2 className="text-lg font-semibold">Score global de visibilité</h2>
                       <p className="text-sm text-muted-foreground">
-                        Moyenne de présence d&apos;Arianee sur les {Object.values(data.scores.today).filter((s) => s >= 0).length} LLMs actifs — {formatDateFR(selectedDate)}
+                        Moyenne pondérée de présence d&apos;Arianee sur les {Object.values(data.scores.today).filter((s) => s >= 0).length} LLMs actifs — {formatDateFR(selectedDate)}
                       </p>
                     </div>
                   </div>
@@ -200,6 +200,41 @@ export default function LLMMonitorPage() {
                     </p>
                   </CardContent>
                 </Card>
+              )}
+
+              {/* Méthodologie */}
+              {hasResults && (
+                <section>
+                  <Card>
+                    <CardContent className="p-6">
+                      <h3 className="text-lg font-semibold mb-4">Méthodologie</h3>
+                      <div className="space-y-4 text-sm text-muted-foreground">
+                        <div>
+                          <h4 className="font-medium text-foreground mb-1">LLMs interrogés</h4>
+                          <p>Chaque requête est envoyée à 6 LLMs majeurs avec recherche web activée :</p>
+                          <ul className="list-disc list-inside mt-1 space-y-0.5">
+                            <li><strong>ChatGPT</strong> (gpt-4o-search-preview) — 81.4% de part de marché</li>
+                            <li><strong>Perplexity</strong> (sonar) — 7.3%</li>
+                            <li><strong>Google Gemini</strong> (gemini-2.0-flash) — 5.6%</li>
+                            <li><strong>Claude</strong> (claude-haiku-4-5) — 1.05%</li>
+                            <li><strong>Grok</strong> (grok-4-1-fast) — ~0.5%</li>
+                            <li><strong>Mistral</strong> (mistral-small) — ~0.3%</li>
+                          </ul>
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-foreground mb-1">Mode de requête</h4>
+                          <p>Chaque appel est <strong>stateless</strong> (sans mémoire) : aucun historique de conversation n&apos;est transmis. Les LLMs reçoivent uniquement la question brute, comme le ferait un utilisateur lambda, avec la recherche web activée pour des réponses à jour.</p>
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-foreground mb-1">Calcul du score pondéré</h4>
+                          <p>Le score global est une <strong>moyenne pondérée</strong> par la part de marché de chaque LLM. Pour chaque LLM actif (ayant renvoyé au moins une réponse), on calcule son taux de mention (nombre de réponses mentionnant Arianee / nombre total de réponses valides). Le score global est ensuite :</p>
+                          <p className="mt-1 font-mono text-xs bg-muted/50 p-2 rounded">Score = Σ (taux_mention_LLM × poids_LLM) / Σ poids_LLM</p>
+                          <p className="mt-1">Cette pondération reflète l&apos;impact réel de chaque LLM : être mentionné par ChatGPT (81.4% du marché) compte bien plus que par Mistral (0.3%).</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </section>
               )}
             </>
           )}
