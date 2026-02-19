@@ -112,8 +112,8 @@ async function queryChatGPT(query: string): Promise<LLMResponse> {
 async function queryGemini(query: string): Promise<LLMResponse> {
   const start = Date.now();
   try {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) return { llmName: "gemini", response: null, error: "GEMINI_API_KEY non configurée", durationMs: 0 };
+    const apiKey = process.env.GOOGLE_AI_API_KEY;
+    if (!apiKey) return { llmName: "gemini", response: null, error: "GOOGLE_AI_API_KEY non configurée", durationMs: 0 };
 
     const text = await withRetry(async () => {
       const genAI = new GoogleGenerativeAI(apiKey);
@@ -228,8 +228,8 @@ async function queryMistral(query: string): Promise<LLMResponse> {
 async function queryGrok(query: string): Promise<LLMResponse> {
   const start = Date.now();
   try {
-    const apiKey = process.env.GROK_API_KEY;
-    if (!apiKey) return { llmName: "grok", response: null, error: "GROK_API_KEY non configurée", durationMs: 0 };
+    const apiKey = process.env.XAI_API_KEY;
+    if (!apiKey) return { llmName: "grok", response: null, error: "XAI_API_KEY non configurée", durationMs: 0 };
 
     const client = new OpenAI({
       apiKey,

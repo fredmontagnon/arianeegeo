@@ -13,6 +13,7 @@ import {
   Brain,
   Calendar,
   Clock,
+  Lock,
 } from "lucide-react";
 import { LLMScoreCards } from "@/components/llm-score-cards";
 import { LLMHeatmap } from "@/components/llm-heatmap";
@@ -39,6 +40,15 @@ export default function LLMMonitorPage() {
     new Date().toISOString().split("T")[0]
   );
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  // Vérifier si l'utilisateur est admin
+  useEffect(() => {
+    fetch("/api/auth/check")
+      .then((res) => res.json())
+      .then((data) => setIsAdmin(data.authenticated))
+      .catch(() => setIsAdmin(false));
+  }, []);
 
   const fetchData = useCallback(async (date: string, autoRedirect = false) => {
     setIsLoading(true);
@@ -170,27 +180,39 @@ export default function LLMMonitorPage() {
                   className="w-40 h-9"
                 />
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => fetchData(selectedDate)}
-                disabled={isLoading}
-              >
-                <RefreshCw className={`h-4 w-4 mr-1 ${isLoading ? "animate-spin" : ""}`} />
-                Refresh
-              </Button>
-              <Button
-                onClick={handleRun}
-                disabled={isRunning}
-                size="sm"
-              >
-                {isRunning ? (
-                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                ) : (
-                  <Play className="h-4 w-4 mr-1" />
-                )}
-                {isRunning ? "Scan en cours..." : "Lancer un scan"}
-              </Button>
+              {isAdmin ? (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fetchData(selectedDate)}
+                    disabled={isLoading}
+                  >
+                    <RefreshCw className={`h-4 w-4 mr-1 ${isLoading ? "animate-spin" : ""}`} />
+                    Refresh
+                  </Button>
+                  <Button
+                    onClick={handleRun}
+                    disabled={isRunning}
+                    size="sm"
+                  >
+                    {isRunning ? (
+                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                    ) : (
+                      <Play className="h-4 w-4 mr-1" />
+                    )}
+                    {isRunning ? "Scan en cours..." : "Lancer un scan"}
+                  </Button>
+                </>
+              ) : (
+                <a
+                  href="/login?redirect=/llm-monitor"
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
+                >
+                  <Lock className="h-3 w-3" />
+                  Admin
+                </a>
+              )}
             </div>
           </div>
 
@@ -303,12 +325,16 @@ export default function LLMMonitorPage() {
                       Aucune donnée pour le {formatDateFR(selectedDate)}
                     </h3>
                     <p className="text-sm text-muted-foreground mb-4">
-                      Lancez un scan pour interroger les LLMs et analyser les réponses.
+                      {isAdmin
+                        ? "Lancez un scan pour interroger les LLMs et analyser les réponses."
+                        : "Aucun scan n'a encore été effectué pour cette date."}
                     </p>
-                    <Button onClick={handleRun} disabled={isRunning}>
-                      <Play className="h-4 w-4 mr-2" />
-                      Lancer le premier scan
-                    </Button>
+                    {isAdmin && (
+                      <Button onClick={handleRun} disabled={isRunning}>
+                        <Play className="h-4 w-4 mr-2" />
+                        Lancer le premier scan
+                      </Button>
+                    )}
                   </CardContent>
                 </Card>
               )}
