@@ -590,6 +590,11 @@ Réponds UNIQUEMENT en JSON valide, sans backticks, sans markdown :
   const text = message.content[0].type === "text" ? message.content[0].text : "";
   const tokensUsed = message.usage?.output_tokens || 0;
 
+  console.log(`[LLM-MONITOR] Réponse Claude recommendations: ${text.length} chars`);
+  if (text.length < 50) {
+    console.log("[LLM-MONITOR] Réponse courte/vide:", text);
+  }
+
   try {
     let parsed;
     // Nettoyer le texte : enlever les backticks markdown si présents
@@ -601,21 +606,26 @@ Réponds UNIQUEMENT en JSON valide, sans backticks, sans markdown :
     try {
       parsed = JSON.parse(cleanText);
     } catch {
-      const jsonMatch = cleanText.match(/\[[\s\S]*\]/);
-      if (!jsonMatch) throw new Error("No JSON array found in: " + cleanText.substring(0, 200));
-      parsed = JSON.parse(jsonMatch[0]);
+      // Extraire le JSON array entre le premier [ et le dernier ]
+      const firstBracket = cleanText.indexOf("[");
+      const lastBracket = cleanText.lastIndexOf("]");
+      if (firstBracket === -1 || lastBracket === -1 || lastBracket <= firstBracket) {
+        throw new Error(`No JSON array found (len=${cleanText.length}): ${cleanText.substring(0, 300)}`);
+      }
+      const jsonStr = cleanText.substring(firstBracket, lastBracket + 1);
+      parsed = JSON.parse(jsonStr);
     }
     return { recommendations: parsed, tokens_used: tokensUsed };
   } catch (err) {
     console.error("[LLM-MONITOR] Erreur parsing recommandations:", err);
-    console.error("[LLM-MONITOR] Réponse brute Claude:", text.substring(0, 500));
+    console.error("[LLM-MONITOR] Réponse brute Claude (500 premiers chars):", text.substring(0, 500));
     return {
       recommendations: [
         {
           title: "Erreur d'analyse",
-          description: "Impossible de générer les recommandations. Réessayez demain.",
+          description: `Impossible de générer les recommandations (réponse: ${text.length} chars). Réessayez via l'API /api/llm-monitor/recommendations.`,
           priority: "basse",
-          action_items: ["Vérifier les logs"],
+          action_items: ["Vérifier les logs Vercel", "Relancer via POST /api/llm-monitor/recommendations"],
         },
       ],
       tokens_used: tokensUsed,
