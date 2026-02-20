@@ -85,7 +85,9 @@ INSERT INTO llm_queries (query_text, bloc, bloc_label, sort_order) VALUES
 ('What DPP solution providers are compliant with EU ESPR regulation?',
  'providers', 'Fournisseurs DPP', 13),
 ('How much does it cost to implement a Digital Product Passport for a mid-size clothing brand?',
- 'providers', 'Fournisseurs DPP', 14);
+ 'providers', 'Fournisseurs DPP', 14),
+('Top 10 DPP software',
+ 'providers', 'Fournisseurs DPP', 21);
 
 -- Bloc: Cas d'usage sectoriels (3 requêtes)
 INSERT INTO llm_queries (query_text, bloc, bloc_label, sort_order) VALUES
