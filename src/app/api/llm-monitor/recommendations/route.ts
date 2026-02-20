@@ -5,7 +5,7 @@ import { LLM_MARKET_WEIGHTS } from "@/lib/llm-queries";
 import type { LLMName } from "@/lib/llm-queries";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 export async function POST(request: NextRequest) {
   // Vérification auth
